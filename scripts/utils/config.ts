@@ -1,1 +1,0 @@
- export let mnemonic: string = "midnight estate agent caution exile under high ivory setup local cushion earth control mechanic involve source negative soap say wise harvest attract latin must";

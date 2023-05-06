@@ -1,8 +1,10 @@
 import { mnemonicToPrivateKey } from "ton-crypto";
-import { mnemonic } from "./config";
-
+import * as dotenv from 'dotenv';
+dotenv.config({path: '../../.env'});
 
 export async function createKeys() {
-    let words = Array(mnemonic);
-    return mnemonicToPrivateKey(words);
+    let words = Array(process.env.MNEMONIC!);
+    return await mnemonicToPrivateKey(words);
 }
+
+createKeys()
