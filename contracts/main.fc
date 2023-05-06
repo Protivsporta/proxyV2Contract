@@ -124,7 +124,7 @@ const int min_tons_for_storage = 100000000; ;; 0.1 TON
 
     tmp_in_msg~touch(); ;; здесь мы кладем принятое сообщение на верхушку стека контракта
 
-    int op = in_msg~load_uint(32);
+    int op = tmp_in_msg~load_uint(32);
 
     if (op == "selfdestruct"c) {
         cell msg = begin_cell()

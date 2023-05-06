@@ -75,19 +75,49 @@ export class Main implements Contract {
         });
     }
 
-    async sendExternal(provider: ContractProvider, 
+    async sendTransferMsgToOwner(provider: ContractProvider, via: Sender, value: bigint) {
+        await provider.internal(via, {
+            value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+                .storeUint(Opcodes.transferMsgToOwner, 32)
+                .storeUint(0, 64)
+            .endCell(),
+        })
+    }
+
+    async sendUpdateSMCcode(provider: ContractProvider, via: Sender, value: bigint, code: Cell) {
+        await provider.internal(via, {
+            value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+                .storeUint(Opcodes.updateCode, 32)
+                .storeUint(0, 64)
+                .storeRef(code)
+            .endCell(),
+        })
+    }
+
+    async sendExtMessage(provider: ContractProvider, 
         opts: {
-            op: number,
+            opCode: number,
             seqno: number,
             signFunc: (buf: Buffer) => Buffer;
-        }    
+        }
     ) {
         const msgToSign = beginCell()
-                            .storeUint(opts.seqno, 32)
-                            .storeUint(opts.op, 32)
-                        .endCell();
-        const sign = opts.signFunc(msgToSign.hash());
-        await provider.external(beginCell().storeBuffer(sign).storeSlice(msgToSign.asSlice()).endCell());
+                        .storeUint(opts.seqno, 32)
+                        .storeUint(opts.opCode, 32)
+                    .endCell();
+
+        const sig = opts.signFunc(msgToSign.hash());
+
+        await provider.external(
+            beginCell()
+                .storeBuffer(sig)
+                .storeSlice(msgToSign.asSlice())
+            .endCell()
+        );
     }
 
     async getBalance(provider: ContractProvider) : Promise<bigint> {
@@ -100,4 +130,8 @@ export class Main implements Contract {
         return result.stack.readAddress();
     }
 
+    async getSeqno(provider: ContractProvider) : Promise<number> {
+        let result = await provider.get('get_seqno', []);
+        return result.stack.readNumber();
+    }
 }

@@ -1,10 +1,11 @@
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton-community/sandbox';
-import { Cell, toNano } from 'ton-core';
+import { Cell, beginCell, toNano } from 'ton-core';
 import { Main } from '../wrappers/Main';
 import '@ton-community/test-utils';
 import { compile } from '@ton-community/blueprint';
 import { KeyPair, mnemonicNew, mnemonicToPrivateKey, sign } from 'ton-crypto';
 import { Opcodes } from '../scripts/utils/opcodes';
+import { createKeys } from '../scripts/utils/keys';
 
 async function getKp() {
     let mnemonic = await mnemonicNew();
@@ -113,24 +114,67 @@ describe('Main', () => {
         expect(ownerAddr.toString()).toBe(newOwner.address.toString());
     })
 
-    it('should fail on wrong signature', async () => {
-        const wrongKp = await getKp();
-        await expect(
-            main.sendExternal({
-                op: Opcodes.selfdestruct,
-                seqno: 0,
-                signFunc: (buf) => sign(buf, wrongKp.secretKey)
-            })
-        ).rejects.toThrow();
+    it('should proxy internal message to SC owner', async () => {
+        const sender = await blockchain.treasury('sender');
+        const proxyResult = await main.sendTransferMsgToOwner(sender.getSender(), transactionFee);
+        expect(proxyResult.transactions).toHaveTransaction({
+            from: main.address,
+            to: owner.address,
+            success: true
+        })
     })
+
+    it('should NOT proxy internal message to SC owner because the sender is the owner', async () => {
+        const proxyResult = await main.sendTransferMsgToOwner(owner.getSender(), transactionFee);
+        expect(proxyResult.transactions).toHaveTransaction({
+            from: owner.address,
+            to: main.address,
+            success: false,
+            exitCode: 403,
+        })
+    })
+
+    it('should update SC code', async () => {
+        const emptyCell = beginCell().endCell();
+        const updateResult = await main.sendUpdateSMCcode(owner.getSender(), transactionFee, emptyCell);
+        expect(updateResult.transactions).toHaveTransaction({
+            from: owner.address,
+            to: main.address,
+            success: true,
+        })
+        expect(await main.getSeqno()).toBeGreaterThan(0);
+    })
+
+    it('should fail on wrong signature', async () => {
+        const badKp = await createKeys();
+  
+        expect.assertions(2);
+  
+        await expect(
+          main.sendExtMessage({
+            opCode: Opcodes.selfdestruct,
+            signFunc: (buf) => sign(buf, badKp.secretKey),
+            seqno: 0
+          })
+  
+        ).rejects.toThrow();
+  
+      });
 
     it('should allow to send externals with right signature', async () => {
         expect(
-            main.sendExternal({
-                op: Opcodes.selfdestruct,
+            main.sendExtMessage({
+                opCode: Opcodes.selfdestruct,
                 seqno: 0,
                 signFunc: (buf) => sign(buf, kp.secretKey)
             })
         );
     })
 });
+
+
+try {
+    
+} catch (error) {
+    
+}
