@@ -6,5 +6,3 @@ export async function createKeys() {
     let words = Array(process.env.MNEMONIC!);
     return await mnemonicToPrivateKey(words);
 }
-
-createKeys()
