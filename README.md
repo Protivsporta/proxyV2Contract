@@ -1,13 +1,10 @@
-# TON project
-
-Starter template for a new TON project - FunC contracts, unit tests, compilation and deployment scripts.
-
 ## Layout
 
 -   `contracts` - contains the source code of all the smart contracts of the project and their dependencies.
 -   `wrappers` - contains the wrapper classes (implementing `Contract` from ton-core) for the contracts, including any [de]serialization primitives and compilation functions.
 -   `tests` - tests for the contracts. Would typically use the wrappers.
 -   `scripts` - contains scripts used by the project, mainly the deployment scripts.   
+-   `scripts/utils` - contains helpers for encryption and enums for SC opcodes.
 
 ## Repo contents / tech stack
 1. Compiling FunC - [https://github.com/ton-community/func-js](https://github.com/ton-community/func-js)
@@ -41,36 +38,13 @@ Starter template for a new TON project - FunC contracts, unit tests, compilation
    2. example: `yarn blueprint run pingpong --mainnet --tonconnect`
 
 ### Testing
-1. Run `yarn test`
+1. Run `npx blueprint tests`
 
-## Adding your own contract
-1. Run `yarn blueprint create <CONTRACT>`
-2. example: `yarn blueprint create MyContract`
-
-* Write code
-  * FunC contracts are located in `contracts/*.fc`
-    * Standalone root contracts are located in `contracts/*.fc`
-    * Shared imports (when breaking code to multiple files) are in `contracts/imports/*.fc`
-  * Tests in TypeScript are located in `test/*.spec.ts`
-  * Wrapper classes for interacting with the contract are located in `wrappers/*.ts`
-  * Any scripts (including deployers) are located in `scripts/*.ts`
-
-* Build
-  * Builder configs are located in `wrappers/*.compile.ts`
-  * In the root repo dir, run in terminal `yarn blueprint build`
-  * Compilation errors will appear on screen, if applicable
-  * Resulting build artifacts include:
-    * `build/*.compiled.json` - the binary code cell of the compiled contract (for deployment). Saved in a hex format within a json file to support webapp imports
-
-* Test
-  * In the root repo dir, run in terminal `yarn test`
-  * Don't forget to build (or rebuild) before running tests
-  * Tests are running inside Node.js by running TVM in web-assembly using [sandbox](https://github.com/ton-community/sandbox)
-
-* Deploy
-  * Run `yarn blueprint run <deployscript>`
-  * Contracts will be rebuilt on each execution
-  * Follow the on-screen instructions of the deploy script
+### Available Tasks
+1. deposit 
+2. withdraw
+3. changeOwner
+4. selfdestruct
   
 # License
 MIT
